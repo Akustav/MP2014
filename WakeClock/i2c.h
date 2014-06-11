@@ -2,7 +2,7 @@
  * i2c.h
  *
  * Created: 4.06.2014 16:12:29
- *  Author: Taavi
+ *  Author: Taavi Adamson, Allan Kustavus
  */
 #ifndef I2C_H
 #define I2C_H 

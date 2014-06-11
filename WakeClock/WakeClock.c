@@ -2,7 +2,7 @@
  * WakeClock.c
  *
  * Created: 15.05.2014 9:21:27
- *  Author: Taavi
+ *  Author: Taavi Adamson, Allan Kustavus
  */ 
 
 #include <avr/io.h>
@@ -14,6 +14,15 @@
 
 #define F_CPU 2000000
 
+void alarm_init(){
+	
+	DDRB = (1 << PB6);
+	
+	a_active = 0;
+	a_minutid = 0;
+	a_tunnid = 12;
+	
+}
 void joystick_init(){
 	
 	MCUCR |= (1<<JTD);
@@ -21,6 +30,135 @@ void joystick_init(){
 	
 	DDRF = 0;
 	PORTF = ~((1 << PF0) | (1 << PF1) | (1 << PF2));
+	
+}
+
+void alarm(){
+	
+	PORTA = 0xff;
+	
+	send_out(HOME, 0);
+	
+	write_str("!!!!!");
+	display_time(0,a_minutid,a_tunnid,5);
+	cursor_place(10);
+	write_str("!!!!!!");
+	cursor_place(40);
+	write_str("!!!!!!!!!!!!!!!!");
+	
+	uint8_t m2 = 1;
+	uint16_t m1 = 0;
+	
+	while(1){
+		
+		if (~PINF & (1<<PF6)){
+			
+			PORTA = 0;
+			a_active = 0;
+			PORTB = ~(1 << PB6);
+			send_out(CLEAR, 0);
+			wait_release();
+			
+			break;
+		}
+		
+		if(m2){
+			
+			if(m1 < 0xFFFF){
+				m1 ++;
+				PINB = (1 << PB6);
+				_delay_ms(100);
+				}else{
+				m1 = 0;
+				m2 = 0;
+			}
+			
+		}else{
+				
+			if(m1 < 0xFFFF){
+				m1 ++;
+				PINB = (1 << PB6);
+				_delay_ms(1);
+				}else{
+				m1 = 0;
+				m2 = 1;
+			}
+		}
+		
+	}
+}
+
+void alarm_setup(){
+	
+	send_out(CLEAR,0);
+	_delay_ms(10);
+	
+	uint8_t active = 1;
+
+	while(1){
+		
+		i2c_read_time();
+		display_setup_time(sekundid, a_minutid, a_tunnid, 45, active);
+		
+		if (~PINF & (1<<PF5)){
+			active = 1;
+		}
+		if (~PINF & (1<<PF3)){
+			active = 0;
+		}
+		if(~PINF & (1<<PF6)){
+			
+			send_out(CLEAR,0);
+			a_active = 1;
+			wait_release();
+			break;
+		}
+		
+		if (active == 0){
+			
+			if(~PINF & (1<<PF4)){
+				
+				if (a_minutid == 0){
+					a_minutid = 59;
+					} else {
+					a_minutid = a_minutid - 1;
+				}
+			}
+			
+			if(~PINF & (1<<PF7)){
+				
+				if (a_minutid == 59){
+					a_minutid = 0;
+					} else {
+					a_minutid = a_minutid + 1;
+				}
+				
+			}
+			} else {
+			
+			if(~PINF & (1<<PF4)){
+				
+				if (a_tunnid == 0){
+					a_tunnid = 23;
+					} else {
+					a_tunnid = a_tunnid - 1;
+				}
+			}
+			
+			if(~PINF & (1<<PF7)){
+				
+				if (a_tunnid == 23){
+					a_tunnid = 0;
+					} else {
+					a_tunnid = a_tunnid + 1;
+				}
+			}
+			
+		}
+		
+		wait_release();
+		
+	}
 	
 }
 
@@ -32,15 +170,11 @@ void time_setup(){
 	uint8_t min = minutid;
 	uint8_t h = tunnid;
 	uint8_t active = 1;
-	
+
 	while(1){
-		
-		min = minutid;
-		h = tunnid;	
-		
-		PORTA = h;
-		
-		display_time(0, min, h, 5);
+
+		i2c_read_time();
+		display_setup_time(sekundid, min, h, 5, active);
 		
 		if (~PINF & (1<<PF5)){
 			active = 1;
@@ -56,8 +190,6 @@ void time_setup(){
 			break;
 		}
 		
-		//wait_release();
-		
 		if (active == 0){
 			
 			if(~PINF & (1<<PF4)){
@@ -67,7 +199,6 @@ void time_setup(){
 					} else {
 					min = min - 1;
 				}
-				//wait_release();
 			}
 			
 			if(~PINF & (1<<PF7)){
@@ -77,7 +208,6 @@ void time_setup(){
 					} else {
 					min = min + 1;
 				}
-				//wait_release();
 				
 			} 
 		} else {
@@ -100,93 +230,153 @@ void time_setup(){
 				}
 			}
 		
-		
-		
 		}
 		
 		wait_release();
 		
-		set_time(min, h);
-		i2c_read_time();
-		display_time(0, minutid, tunnid, 5);
+	}
+}
+
+void display_digits(uint8_t x){
+	
+	char str[3];
+	
+	if(x < 10){
+		str[0] = '0';
+		str[1] = x + '0';
 		
+		} else {
+		
+		sprintf(str, "%d", x);
+	}
+	
+	str[2] = '\0';
+	write_str(str);
+}
+
+void display_setup_time(uint8_t sec, uint8_t min, uint8_t h, uint8_t place, uint8_t active){
+	
+	cursor_place(place);
+	
+	if(active == 0){
+		
+		display_digits(h);
+		write_str(":");
+		
+		if(sec % 2 == 0){
+			write_str("  ");
+			
+		} else {
+			
+			display_digits(min);
+		}
+		
+	} else {
+		
+		if(sec % 2 == 0){
+			write_str("  ");
+			
+		} else {
+			display_digits(h);
+		}
+		
+		write_str(":");
+		display_digits(min);		
+	}
+	
+}
+void display_alarm_status(){
+	
+	cursor_place(3);
+	
+	if(a_active){
+		write_str("*       *");
+		
+		cursor_place(49);
+		write_str("A:");
+		display_time(0, a_minutid, a_tunnid, 51);
+		
+	} else {
+		write_str("         ");
+		cursor_place(49);
+		write_str("       ");
 		
 	}
+	
 }
 
 void display_time(uint8_t sec, uint8_t min, uint8_t h, uint8_t place){
 	
 	cursor_place(place);
 	
-	char str[3];
-	
-	if(h < 10){
-		str[0] = '0';
-		str[1] = h + '0';
-		
-	} else {
-		
-		sprintf(str, "%d", h);
-	}
-	
-	str[2] = '\0';
-	write_str(str);
+	display_digits(h);
 	
 	if(sec % 2 == 0){
-		str[0] = ':';
-		str[1] = '\0';
+		write_str(":");
 	} else{
-		str[0] = ' ';
-		str[1] = '\0';
+		write_str(" ");
 	}
-	
-	write_str(str);
-	
-	
-	if(min < 10){
-		str[0] = '0';
-		str[1] = min + '0';
-		
-		} else {
-		
-		sprintf(str, "%d", min);
-	}
-	
-	str[2] = '\0';
-	write_str(str);
+	display_digits(min);
 	
 }
 
 void wait_release(){
 	
-	while(PINF != 0xFC){
-		PORTA = PINF;
+	while(PINF != 0xFE){
+		_delay_ms(10);
 	}
 	PORTA = 0;
 }
+void check_input(){
+	
+	if(~PINF & (1<<PF6)){
+		wait_release();
+		time_setup();
+		
+	}
+	
+	if((~PINF & (1<<PF3)) || (~PINF & (1<<PF5))){
+		wait_release();
+		alarm_setup();
+		
+	}
+	
+	if(~PINF & (1<<PF7)){
+		wait_release();
+		a_active = 1;
+		
+	}
+	
+	if(~PINF & (1<<PF4)){
+		wait_release();
+		a_active = 0;
+		
+	}
+}
+
 int main(void)
 {	
+	// Initsialiseerimised
 	init_RTC();
 	joystick_init();
 	lcd_init();
+	alarm_init();
 	
-	send_out(NO_CURSOR, 0);
+	
 	
 	while(1){
 		
 		send_out(HOME, 0);
 		
 		i2c_read_time();
+		display_alarm_status();
 		display_time(sekundid, minutid, tunnid, 5);
 		
-		if(~PINF & (1<<PF6)){
-			
-			wait_release();
-			time_setup();
-			
+		if(a_minutid == minutid && a_tunnid == tunnid && a_active){
+			alarm();
 		}
 		
-		PORTA = PINF;
+		check_input();
 		
 		_delay_ms(100);	
 		

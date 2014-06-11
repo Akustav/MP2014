@@ -2,7 +2,7 @@
  * lcd.h
  *
  * Created: 10.06.2014 15:19:07
- *  Author: Taavi
+ *  Author: Taavi Adamson, Allan Kustavus
  */ 
 #ifndef LCD_H
 #define LCD_H

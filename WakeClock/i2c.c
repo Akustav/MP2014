@@ -2,7 +2,7 @@
  * i2c.c
  *
  * Created: 4.06.2014 15:03:36
- *  Author: Taavi
+ *  Author: Taavi Adamson, Allan Kustavus
  */ 
 
 #include "i2c.h"
@@ -26,7 +26,7 @@ void init_RTC(){
 	i2c_start();
 	i2c_slaw();
 	i2c_write(0);
-	i2c_write(0x80);
+	i2c_write(0xAD);
 	i2c_write(89);
 	i2c_write(17);
 	i2c_stop();
@@ -36,7 +36,17 @@ void init_RTC(){
 }
 
 void set_time(uint8_t min, uint8_t h){
-
+	
+	// Kavalad valemid konverteerimiseks
+	
+	if (min > 9){
+		min = min + (min - (min % 10))/10 * 6;
+	}
+	
+	if (h > 9){
+		h = h + (h - (h % 10))/10 * 6;
+	}
+	
 	i2c_start();
 	i2c_slaw();
 	i2c_write(0);
