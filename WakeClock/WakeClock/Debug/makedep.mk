@@ -4,5 +4,7 @@
 
 i2c.c
 
+lcd.c
+
 WakeClock.c
 

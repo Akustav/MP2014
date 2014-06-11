@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "WakeClock", "WakeClock\WakeClock.cproj", "{0F0D4F35-A23B-4104-A8ED-870CB8218E3E}"
 EndProject
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "kell", "..\kell\kell\kell.cproj", "{D380BF17-00F9-4D77-9EA8-45F4CAC15198}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -15,10 +13,6 @@ Global
 		{0F0D4F35-A23B-4104-A8ED-870CB8218E3E}.Debug|AVR.Build.0 = Debug|AVR
 		{0F0D4F35-A23B-4104-A8ED-870CB8218E3E}.Release|AVR.ActiveCfg = Release|AVR
 		{0F0D4F35-A23B-4104-A8ED-870CB8218E3E}.Release|AVR.Build.0 = Release|AVR
-		{D380BF17-00F9-4D77-9EA8-45F4CAC15198}.Debug|AVR.ActiveCfg = Debug|AVR
-		{D380BF17-00F9-4D77-9EA8-45F4CAC15198}.Debug|AVR.Build.0 = Debug|AVR
-		{D380BF17-00F9-4D77-9EA8-45F4CAC15198}.Release|AVR.ActiveCfg = Release|AVR
-		{D380BF17-00F9-4D77-9EA8-45F4CAC15198}.Release|AVR.Build.0 = Release|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
