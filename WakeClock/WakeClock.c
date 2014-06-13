@@ -12,8 +12,6 @@
 #include "WakeClock.h"
 #include "lcd.h"
 
-#define F_CPU 2000000
-
 void alarm_init(){
 	
 	DDRB = (1 << PB6);
@@ -40,6 +38,7 @@ void alarm(){
 	send_out(HOME, 0);
 	
 	write_str("!!!!!");
+	
 	display_time(0,a_minutid,a_tunnid,5);
 	cursor_place(10);
 	write_str("!!!!!!");
@@ -59,6 +58,8 @@ void alarm(){
 			send_out(CLEAR, 0);
 			wait_release();
 			
+			last_minute = minutid - 1;
+			
 			break;
 		}
 		
@@ -67,6 +68,7 @@ void alarm(){
 			if(m1 < 0xFFFF){
 				m1 ++;
 				PINB = (1 << PB6);
+				PINA = 0xff;
 				_delay_ms(100);
 				}else{
 				m1 = 0;
@@ -78,6 +80,7 @@ void alarm(){
 			if(m1 < 0xFFFF){
 				m1 ++;
 				PINB = (1 << PB6);
+				PINA = 0xff;
 				_delay_ms(1);
 				}else{
 				m1 = 0;
@@ -111,6 +114,8 @@ void alarm_setup(){
 			send_out(CLEAR,0);
 			a_active = 1;
 			wait_release();
+			
+			last_minute = minutid - 1;
 			break;
 		}
 		
@@ -187,6 +192,8 @@ void time_setup(){
 			send_out(CLEAR,0);
 			set_time(min, h);
 			wait_release();
+			
+			last_minute = minutid - 1;
 			break;
 		}
 		
@@ -290,14 +297,22 @@ void display_alarm_status(){
 	cursor_place(3);
 	
 	if(a_active){
-		write_str("*       *");
+		write_str("*");
+		cursor_place(11);
+		write_str("*");
 		
 		cursor_place(49);
 		write_str("A:");
-		display_time(0, a_minutid, a_tunnid, 51);
+		display_digits(a_tunnid);
+		write_str(":");
+		display_digits(a_minutid);
 		
 	} else {
-		write_str("         ");
+		
+		write_str(" ");
+		cursor_place(11);
+		write_str(" ");
+		
 		cursor_place(49);
 		write_str("       ");
 		
@@ -307,22 +322,30 @@ void display_alarm_status(){
 
 void display_time(uint8_t sec, uint8_t min, uint8_t h, uint8_t place){
 	
-	cursor_place(place);
+	if(last_minute != minutid){
+		
+		cursor_place(place);
+		display_digits(h);
+		
+		cursor_place(place+3);
+		display_digits(min);
+		
+		last_minute = minutid;
+		
+	}
 	
-	display_digits(h);
-	
+	cursor_place(place+2);
 	if(sec % 2 == 0){
 		write_str(":");
-	} else{
+		} else{
 		write_str(" ");
 	}
-	display_digits(min);
 	
 }
 
 void wait_release(){
 	
-	while(PINF != 0xFE){
+	while((PINF & 0xF8 )!= 0xF8){
 		_delay_ms(10);
 	}
 	PORTA = 0;
@@ -362,19 +385,20 @@ int main(void)
 	lcd_init();
 	alarm_init();
 	
-	
+	last_minute = minutid-1;
 	
 	while(1){
 		
 		send_out(HOME, 0);
 		
 		i2c_read_time();
-		display_alarm_status();
-		display_time(sekundid, minutid, tunnid, 5);
 		
 		if(a_minutid == minutid && a_tunnid == tunnid && a_active){
 			alarm();
 		}
+		
+		display_alarm_status();
+		display_time(sekundid, minutid, tunnid, 5);
 		
 		check_input();
 		

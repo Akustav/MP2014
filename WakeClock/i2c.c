@@ -5,7 +5,9 @@
  *  Author: Taavi Adamson, Allan Kustavus
  */ 
 
+#include "lcd.h"
 #include "i2c.h"
+#include "WakeClock.h"
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -30,6 +32,9 @@ void init_RTC(){
 	i2c_write(89);
 	i2c_write(17);
 	i2c_stop();
+	
+	minutid = 59;
+	tunnid = 11;
 	
 	_delay_us(200);
 	

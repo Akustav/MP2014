@@ -7,11 +7,8 @@
 #ifndef I2C_H
 #define I2C_H 
 
-#include <avr/io.h>
-
 #define SLA_W 0b11011110
 #define SLA_R 0b11011111
-#define F_CPU 2000000
 
 volatile uint8_t sekundid;
 volatile uint8_t minutid;

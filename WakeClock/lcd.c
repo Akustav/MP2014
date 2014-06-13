@@ -4,7 +4,10 @@
  * Created: 10.06.2014 15:15:21
  *  Author: Taavi Adamson, Allan Kustavus
  */ 
+#include <avr/io.h>
 #include "lcd.h"
+#include "i2c.h"
+#include "WakeClock.h"
 #include <util/delay.h>
 
 void e_toggle(){

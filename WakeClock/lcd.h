@@ -6,13 +6,12 @@
  */ 
 #ifndef LCD_H
 #define LCD_H
+#include <avr/io.h>
 
 #define NO_CURSOR 0b00001100
 #define HOME 0b00000010
 #define CLEAR 0b00000001
 #define SHIFTC_R 0b00010100
-
-#include "WakeClock.h"
 
 void e_toggle();
 void lcd_data(unsigned char b); 
