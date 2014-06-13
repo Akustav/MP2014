@@ -28,10 +28,38 @@ volatile uint8_t a_minutid;
 volatile uint8_t a_tunnid;
 volatile uint8_t last_minute;
 
+/**
+ * Prints input time onto the screen
+ * @param Number representing seconds (0-59)
+ * @param Number representing minutes (0-59)
+ * @param Number representing hours (0-23)
+ * @param The position where the time is being displayed on screen
+ */
 void display_time(uint8_t sec, uint8_t min, uint8_t h, uint8_t place);
+
+/**
+ * Prints input time onto the screen, for time editing
+ * @param Number representing seconds (0-59)
+ * @param Number representing minutes (0-59)
+ * @param Number representing hours (0-23)
+ * @param The position where the time is being displayed on screen
+ * @param Represents if minutes or hours is selected for editing
+ */
 void display_setup_time(uint8_t sec, uint8_t min, uint8_t h, uint8_t place, uint8_t active);
+
+/**
+ * Joystick input initialisation
+ */
 void joystick_init();
+
+/**
+ * Time initialisation
+ */
 void time_setup();
+
+/**
+ * Function for waiting for input release, before taking new input.
+ */
 void wait_release();
 
 #endif
